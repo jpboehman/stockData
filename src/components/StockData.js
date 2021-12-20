@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { TextField, Button, List, ListItem, Box, } from '@material-ui/core'
 
 
@@ -13,6 +13,8 @@ export const StockData = () => {
     });
     const [hideResults, setHideResults] = useState(true);
     const userUrl = `https://jsonmock.hackerrank.com/api/stocks?date=`;
+    // eslint-disable-next-line no-mixed-operators
+    const dateRef = useRef(); // Would grab something like this for all inputs of a form to clear them if we wish
 
     const submitDate = () => {
         if (!date) return;
@@ -23,7 +25,6 @@ export const StockData = () => {
         })
         .then((resData) => {
             const { data } = resData;
-            console.log(data);
             setStockResults({
                 close: data[0].close,
                 date,
@@ -32,12 +33,24 @@ export const StockData = () => {
                 open: data[0].open,
             });
             setHideResults(false);
-        }).catch(e => alert(`The call failed with the error ${JSON.stringify(e)}`));
+        }).catch((e) => {
+            setHideResults(true);
+            setStockResults({
+                close: 0,
+                date: '',
+                high: 0,
+                low: 0,
+                open: 0,
+            })
+            dateRef.current.value = '';
+            alert(`No stock data, please select a different date`);
+            console.error(e);
+        })
     }
     
     return (
         <div id="stocksApp">
-            <TextField type="text" label="Date:" id="date" onChange={(event) => setDate(event.target.value)}></TextField>
+            <TextField type="text" label="Date:" id="date" inputRef={dateRef} onChange={(event) => setDate(event.target.value)}></TextField>
             <br/>
             <Button type="submit" onClick={submitDate}>Search stocks</Button>
             {!hideResults ? 
